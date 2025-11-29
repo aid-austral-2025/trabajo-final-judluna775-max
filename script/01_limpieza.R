@@ -146,8 +146,7 @@ toneladas_long <- toneladas_long %>%
 
 
 toneladas_long <- toneladas_long %>% 
-  filter(mes %in% 1:10)
-
+  filter(!(anio == 2025 & mes %in% 11:12))
 
 # ─────────────────────────────────────────
 # 8. Guardar datos procesados
