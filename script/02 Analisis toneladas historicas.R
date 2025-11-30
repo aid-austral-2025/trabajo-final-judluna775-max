@@ -229,7 +229,25 @@ ggplot(toneladas, aes(x = fecha)) +
 
 # ─────────────────────────────────────────
 # 7. Comparación anual por acopio (barras por año)
-# ─────────────────────────────────────────
+# ──
+
+#tabla para una mejor visualizacion de los datos 
+
+resumen_anual_simple <- toneladas |>
+  dplyr::group_by(acopio, anio) |>
+  dplyr::summarise(
+    orig_tn_anio = sum(orig_mes, na.rm = TRUE),
+    .groups = "drop"
+  )
+tabla_anual <- resumen_anual_simple |>
+  tidyr::pivot_wider(
+    names_from = anio,
+    values_from = orig_tn_anio
+  ) |>
+  dplyr::arrange(desc(2025)) # ordeno por el año más reciente
+
+tabla_anual
+
 
 ggplot(resumen_acopio_anio, 
        aes(x = factor(anio),
