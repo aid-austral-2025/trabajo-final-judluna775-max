@@ -361,32 +361,63 @@ Luego de ver la tendencia mensual, ahora analizamos cómo evoluciona la **origin
 Este gráfico permite comparar rápidamente:
 
 -   aumentos o caídas interanuales,
+-   cómo se redistribuye el volumen entre acopios,
+-   qué tendencias se consolidan en el tiempo,
 -   estabilidad o volatilidad en el volumen,
 -   efectos operativos (cierres y reaperturas),
 -   y diferencias estructurales entre acopios.
+
+## Tabla anual de volúmenes
+
+A continuación se presenta la tabla con las **toneladas originadas por acopio**, año por año, expresadas en toneladas:
 
 ```{r}
 
 #| label: tabla-volumen-anual
 #| echo: false
 
-resumen_anual_simple <- toneladas |>
+# 1) Tabla numérica base (TONELADAS, sin formatear)
+tabla_anual <- toneladas |>
   dplyr::group_by(acopio, anio) |>
   dplyr::summarise(
     orig_tn_anio = sum(orig_mes, na.rm = TRUE),
     .groups = "drop"
-  )
-tabla_anual <- resumen_anual_simple |>
+  ) |>
   tidyr::pivot_wider(
-    names_from = anio,
+    names_from  = anio,
     values_from = orig_tn_anio
   ) |>
-  dplyr::arrange(desc(2025)) # ordeno por el año más reciente
+  dplyr::arrange(desc(`2025`))   # ordeno por el año más reciente
 
-tabla_anual
+# 2) Versión SOLO PARA MOSTRAR: en miles y con formato lindo
+tabla_anual_miles_tabla <- tabla_anual |>
+  dplyr::mutate(
+    dplyr::across(
+      -acopio,
+      ~ .x / 1000          # pasamos a miles de toneladas
+    )
+  ) |>
+  dplyr::mutate(
+    dplyr::across(
+      -acopio,
+      ~ scales::number(
+          .x,
+          accuracy    = 0.1,
+          big.mark    = ".",
+          decimal.mark = ","
+        )
+    )
+  )
+
+knitr::kable(
+  tabla_anual_miles_tabla,
+  col.names = c("Acopio", "2020", "2021", "2022", "2023", "2024", "2025"),
+  caption   = "Toneladas originadas por acopio (2020–2025) – valores en miles de toneladas"
+)
+
 ```
 
-En el siguiente grafico podemos ver : Cada recuadro representa un acopio, y las barras muestran su volumen total originado año a año.
+En el siguiente punto podemos ver esta informacion graficamente, donde cada recuadro representa un acopio, y las barras muestran su volumen total originado año a año.
 
 ```{r}
 #| label: grafico-comparacion-anual
@@ -414,3 +445,58 @@ fill = "Año"
 theme_minimal(base_size = 13)
 
 ```
+
+## Conclusiones del análisis anual
+
+### 1. 2025 fue un año excepcional: varios acopios alcanzaron su mejor registro histórico
+
+Los valores muestran que **2025 es el mejor año de la serie 2020–2025 para muchos acopios**, lo que marca una tendencia fuerte al alza en el negocio:
+
+-   **LAS VARILLAS** alcanza su máximo histórico: **219.907 tn**.\
+-   **PIQUETE CABADO** también llega a su mejor valor reciente: **184.169 tn**.\
+-   **VILLEGAS**, aun sin acopio físico, registra su **mayor volumen histórico**: **106.370 tn**.\
+-   **ALVEAR**, tras la reapertura, logra **86.712 tn**, su mejor nivel en la serie.
+
+Este comportamiento señala un **fortalecimiento generalizado** en la originación.
+
+### 2. Acopios con crecimiento sostenido en los últimos 3 años (2023 → 2024 → 2025)
+
+Se observan trayectorias de crecimiento claras:
+
+-   **LAS VARILLAS** crece de manera acelerada: **78.685 → 90.855 → 219.907**.\
+-   **VILLEGAS** sorprende con su evolución: **16.035 → 91.148 → 106.370**.\
+-   **ALVEAR** recupera operación y escala rápidamente: **28.567 → 63.299 → 86.712**.\
+-   **PIQUETE CABADO** muestra una recuperación sólida en 2024–2025.
+
+Estos acopios reflejan no solo recuperación, sino **expansión comercial real**.
+
+### 3. Impacto operativo de los cierres (2023–2024)
+
+Es fundamental interpretar correctamente los descensos:
+
+-   **ALVEAR** y **BALCARCE** estuvieron en obras durante 2023–2024.\
+-   **BALCARCE** retoma actividad y sube fuerte en 2025 (**137.545 tn**).\
+-   **ALVEAR** vuelve recién en 2025, logrando su mejor año.
+
+Los descensos no representan pérdida comercial, sino **indisponibilidad operativa**.
+
+### 4. Acopios líderes que sostienen su posición
+
+Más allá de los cambios anuales:
+
+-   **GUARDIA ESCOLTA** y **PIQUETE CABADO** siguen siendo pilares fuertes del sistema.\
+-   **ITIN** mantiene volúmenes estables y altos, consolidando su rol.
+
+### 5. Acopios estructuralmente menores
+
+-   **VICTORIA** muestra niveles bajos porque ya no pertenece al grupo.\
+-   **VILLEGAS**, aún sin acopio físico, logra crecimiento destacable y consistente.
+
+## Resumen ejecutivo
+
+-   **2025 marca un año récord** para varios acopios claves.\
+-   Las tendencias de crecimiento de los últimos 3 años muestran un **fortalecimiento sostenido**.\
+-   Las caídas en 2023–2024 responden a factores operativos y no comerciales.\
+-   El mapa productivo se reorganiza con acopios que crecen, otros que se recuperan y algunos que dejan el sistema.
+
+Este análisis aporta una visión clara para la planificación comercial y operativa hacia adelante.

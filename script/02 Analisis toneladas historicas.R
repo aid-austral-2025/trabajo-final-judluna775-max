@@ -13,6 +13,7 @@
 #install.packages("dplyr")
 #install.packages("plotly")
 #install.packages("colorspace")
+#install.packages("kableExtra")
 
 
 # Paquetes ---------------------------------------------------------------------
@@ -22,7 +23,10 @@ library(here)
 library(scales)
 library(RColorBrewer)
 library(plotly)      # lo usaremos luego
-library(ggrepel)     # para etiquetas más prolijas si las usamos
+library(ggrepel)# para etiquetas más prolijas si las usamos
+library(knitr)
+library(kableExtra)
+
 
 # ─────────────────────────────────────────
 # 1. Lectura y preprocesamiento
@@ -229,7 +233,7 @@ ggplot(toneladas, aes(x = fecha)) +
 
 # ─────────────────────────────────────────
 # 7. Comparación anual por acopio (barras por año)
-# ──
+# ──--------------------------------------
 
 #tabla para una mejor visualizacion de los datos 
 
@@ -246,8 +250,59 @@ tabla_anual <- resumen_anual_simple |>
   ) |>
   dplyr::arrange(desc(2025)) # ordeno por el año más reciente
 
+tabla_anual <- tabla_anual |>
+  dplyr::mutate(
+    dplyr::across(
+      where(is.numeric),
+      ~ scales::comma(.x, big.mark = ".", decimal.mark = ",")
+    )
+  )
+
 tabla_anual
 
+
+#  Tabla para mejor presentacion en quarto 
+tabla_anual <- toneladas |>
+  dplyr::group_by(acopio, anio) |>
+  dplyr::summarise(
+    orig_tn_anio = sum(orig_mes, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  tidyr::pivot_wider(
+    names_from  = anio,
+    values_from = orig_tn_anio
+  ) |>
+  dplyr::arrange(desc(`2025`))   # ordeno por el año más reciente
+
+# 2) Versión SOLO PARA MOSTRAR: en miles y con formato lindo
+tabla_anual_miles_tabla <- tabla_anual |>
+  dplyr::mutate(
+    dplyr::across(
+      -acopio,
+      ~ .x / 1000          # pasamos a miles de toneladas
+    )
+  ) |>
+  dplyr::mutate(
+    dplyr::across(
+      -acopio,
+      ~ scales::number(
+        .x,
+        accuracy    = 0.1,
+        big.mark    = ".",
+        decimal.mark = ","
+      )
+    )
+  )
+
+knitr::kable(
+  tabla_anual_miles_tabla,
+  col.names = c("Acopio", "2020", "2021", "2022", "2023", "2024", "2025"),
+  caption   = "Toneladas originadas por acopio (2020–2025) – valores en miles de toneladas"
+)
+
+
+
+#grafico 
 
 ggplot(resumen_acopio_anio, 
        aes(x = factor(anio),
@@ -612,7 +667,7 @@ plot_ytd_global <- ton_ytd_global %>%
     frame = ~frame_mes,
     
     type = "scatter",
-    mode = "markers",        # SOLO burbujas, sin líneas
+    mode = "markers",        
     
     # BURBUJAS
     marker = list(
