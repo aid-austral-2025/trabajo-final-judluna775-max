@@ -392,6 +392,14 @@ ggplot(rank_podio,
 # 10. Bump chart: evolución del ranking
 # ─────────────────────────────────────────
 
+# Dataset para las etiquetas: último año disponible de cada acopio
+labels_df <- rank_orig |>
+  group_by(acopio) |>
+  filter(anio == max(anio)) |>
+  ungroup()
+
+
+
 ggplot(rank_orig,
        aes(x = anio,
            y = rank,
@@ -401,7 +409,22 @@ ggplot(rank_orig,
   geom_line(linewidth = 1.4) +
   geom_point(size = 4) +
   
+  # Texto al final de la línea
+  geom_text(
+    data = labels_df,
+    aes(label = acopio),
+    hjust = -0.15,      # corre un poquito a la derecha
+    size = 4.2,
+    fontface = "bold"
+  ) +
+  
+  
   scale_y_reverse(breaks = 1:max(rank_orig$rank)) +  # 1 arriba, n abajo
+  
+  # Extiendo  el eje x para que entre el texto
+  scale_x_continuous(
+    breaks = sort(unique(rank_orig$anio)),
+    expand = expansion(mult = c(0.02, 0.12))) +
   
   labs(
     title = "Evolución del ranking anual de originación por acopio",
@@ -411,7 +434,7 @@ ggplot(rank_orig,
   
   theme_minimal(base_size = 13) +
   theme(
-    legend.position = "bottom",
+    legend.position = "none",
     plot.title = element_text(face = "bold")
   )
 

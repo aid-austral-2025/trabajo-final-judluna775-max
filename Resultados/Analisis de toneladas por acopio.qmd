@@ -1,5 +1,6 @@
 ---
 title: "Análisis de toneladas históricas por acopio"
+subtitle: "Trabajo práctico final de la materia: *Análisis inteligente de datos* — Maestría en Ciencia de Datos (2025/2026)"
 author: "Judith Luna"
 format:
   html:
@@ -10,54 +11,54 @@ format:
 editor: visual
 ---
 
-# 
+```{=html}
+<style>
+h1 { color: #1A5276; }
+h2 { color: #2E86C1; }
+h3 { color: #117A65; }
+</style>
+```
 
-# Preparación de los datos y consideraciones del negocio
+------------------------------------------------------------------------
 
-Antes de comenzar con el análisis, se realizaron varios pasos de preparación y depuración de la información original. A continuación se resumen los puntos importantes para comprender correctamente los resultados.
+# Análisis de toneladas históricas por acopio
 
-## Depuración y selección temporal
+# 1. Preparación de los datos y consideraciones del negocio
 
-La base histórica incluye información desde 2017; sin embargo, **solo se analiza desde 2020 en adelante**. Los motivos:
+Este informe analiza la evolución de la originación de granos por acopio entre 2020 y 2025. El objetivo es comprender: - cómo se comporta el volumen originado y equivalente, - qué acopios lideran el sistema, - cómo cambia la participación relativa, - y cuáles son los factores operativos y climáticos que explican las variaciones.
 
--   Antes de 2020 no existía información completa y homogénea para todos los acopios.
--   El conjunto de acopios surgen de una fusion de empresas y solo hay informacion historica de una parte.
--   A partir de 2020 la estructura de originación y equivalentes se vuelve consistente.
+## 1.1 Depuración y selección temporal
 
-Por este motivo, el análisis se restringe al período **2020–2025** para asegurar comparabilidad y robustez en todas las conclusiones.
+Aunque existe información desde 2017, el análisis se restringe al período **2020–2025**, debido a que: - antes de 2020 no hay información completa y homogénea, - la estructura actual surge de una fusión de empresas, - desde 2020 la lógica comercial y operativa se vuelve consistente.
 
-## Significado de “toneladas equivalentes”
+Esto asegura comparabilidad entre acopios y confiabilidad en las conclusiones.
 
-En este informe se utilizan dos métricas fundamentales:
+## 1.2 Contexto climático y sanitario (impacto en 2023–2024)
 
--   **Toneladas originadas (orig_mes)**: volumen operado por el equipo comercial, independientemente de dónde se descargue o procese.
--   **Toneladas equivalentes (equiv_mes)**: volumen que **efectivamente pasa por el acopio**, es decir, movimientos que físicamente ingresan a la planta.
+Los años 2023 y 2024 estuvieron fuertemente condicionados por factores externos:
 
-Por eso, en varios gráficos se analiza la relación entre ambos volúmenes.
+-   **Sequía 2023** → una de las más severas en décadas.\
+-   **Ola de calor tardía** → agravó el estrés de los cultivos.\
+-   **Chicharrita del maíz (campaña 2023/24)** → redujo drásticamente los rindes de maíz.
 
-## Particularidades de ciertos acopios
+➡️ Estos fenómenos explican parte de la caída en volúmenes originados y equivalentes durante esos años.
 
-Hay dos casos específicos a tener en cuenta:
+## 1.3 Significado de “toneladas equivalentes”
 
--   **VICTORIA**: ya no pertenece al grupo actualmente. Por eso, en los últimos años presenta volúmenes más bajos o nulos, especialmente en toneladas equivalentes.
+En el informe se utilizan dos métricas fundamentales:
 
--   **VILLEGAS**: si bien aparece como acopio en la base, **no existe un acopio físico**.\
-    Funciona únicamente como oficina comercial.\
-    Esto explica por qué sus toneladas equivalentes son cero:\
-    *no tiene un punto físico donde se descargue mercadería*.
+\- **Toneladas originadas:** volumen manejado comercialmente.\
+- **Toneladas equivalentes:** volumen que ingresa físicamente a planta.
 
--   Para interpretar correctamente los volúmenes equivalentes (mercadería que efectivamente pasa por el acopio), es importante considerar ciertos eventos operativos:
+La comparación permite identificar cierres, limitaciones operativas y uso real de la capacidad instalada.
 
-    -   **ALVEAR** y **BALCARCE** estuvieron **cerrados por reformas entre 2023 y 2024**.\
-        Ambas plantas fueron renovadas y no operaron con normalidad durante ese período.
+## 1.4 Particularidades de ciertos acopios
 
-    -   **BALCARCE** retomó actividad antes, aproximadamente a mediados de 2024.
+Para interpretar correctamente los resultados, se destacan tres casos: - **Villegas:** oficina comercial → equivalentes = 0.\
+- **Victoria:** ya no pertenece al grupo → actividad decreciente hasta desaparecer.\
+- **Alvear y Balcarce:** en obras 2023–2024 → equivalentes bajos por causas operativas.
 
-    -   **ALVEAR** volvió a operar recién a inicios de 2025.
-
-    Esto explica la caída en toneladas equivalentes en esos años y evita interpretar los descensos como pérdida comercial, cuando en realidad fueron consecuencia directa de la disponibilidad operativa de las plantas.
-
-Estos aspectos son normales y esperables, y no representan errores en los datos.
+------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
 
@@ -95,19 +96,7 @@ toneladas <- toneladas |>
   )
 ```
 
-## Vista previa de los datos utilizados
-
-Antes de avanzar con los análisis, se muestra un resumen de la estructura del dataset final.\
-Esto permite verificar que las variables claves (**acopio**, **año**, **mes**, **originadas**, **equivalentes**) estén correctamente cargadas.
-
-```{r}
-#| label: glimpse-toneladas
-#| echo: false
-
-dplyr::glimpse(toneladas)
-```
-
-# 1. Panorama general por acopio
+# 2. Panorama general por acopio (Ranking histórico)
 
 En esta sección se muestra el **ranking histórico de toneladas originadas por acopio** en el período 2020–2025.
 
@@ -164,30 +153,16 @@ ggplot(resumen_acopio_total,
   theme_minimal(base_size = 13)
 ```
 
-## Comentarios del ranking histórico
+### Conclusiones
 
--   **GUARDIA ESCOLTA** y **PIQUETE CABADO** aparecen como los acopios con mayor volumen acumulado de originación en todo el período.
--   **ITIN** y **LAS VARILLAS** se consolidan en un segundo escalón, con volúmenes altos y bastante estables.
--   **ALVEAR**, **VILLEGAS** y **VICTORIA** concentran una porción menor del total.
+-   Guardia Escolta y Piquete Cabado lideran el sistema.\
+-   Itín y Las Varillas conforman un segundo escalón robusto.\
+-   Alvear, Villegas y Victoria muestran menor peso relativo.\
+-   Este gráfico permite ver la estructura global del negocio.
 
-Más adelante vamos a ver cómo estos volúmenes se reparten año a año y cómo cambia el ranking en el tiempo.
+------------------------------------------------------------------------
 
-# 2. Relación entre toneladas originadas y toneladas equivalentes
-
-En esta sección analizamos cómo se reparte el volumen originado entre:
-
--   **Toneladas originadas**: todo el volumen gestionado comercialmente.
--   **Toneladas equivalentes**: volumen que efectivamente pasa por la planta.
-
-Comparar estos dos indicadores permite entender el rol operativo de cada acopio, identificar cierres o particularidades operativas y distinguir entre originación comercial y utilización real de la capacidad física de planta.
-
-Recordar puntos importantes del negocio:
-
--   **VILLEGAS** es una oficina comercial, por eso sus toneladas equivalentes son cero.
--   **VICTORIA** ya no pertenece al grupo, por lo que su actividad equivalente cae.
--   **ALVEAR y BALCARCE** tuvieron períodos de cierre (2023–2024), lo cual explica caídas que no reflejan pérdida comercial sino reformas estructurales.
-
-A continuación se presenta la comparación global 2020–2025.
+# 3. Relación entre toneladas originadas y equivalentes
 
 ```{r}
 #| label: grafico-orig-vs-equiv
@@ -268,21 +243,44 @@ theme_minimal(base_size = 13)
 
 ```
 
-## Comentarios sobre la relación origen–equivalente
+## Conclusiones — Porción equivalente dentro de la originación total
 
--   **PIQUETE CABADO** y **GUARDIA ESCOLTA** muestran altos volúmenes equivalentes, lo que indica una operación estable y una elevada proporción de mercadería que ingresa a planta.
+El gráfico permite comparar cuánta parte de la mercadería originada por cada acopio ingresa efectivamente a planta. A partir de la lectura se destacan los siguientes puntos:
 
--   **ITIN** y **LAS VARILLAS** mantienen una relación equilibrada, lo cual sugiere una buena coordinación entre originación comercial y disponibilidad operativa.
+### **3.1. Acopios con mayor eficiencia de conversión (altas proporciones equivalentes)**
 
--   **VILLEGAS**, al ser únicamente oficina comercial, no registra toneladas equivalentes. Esto es totalmente normal y esperado.
+Balcarce (58%), Itín (45%), Alvear (46%) y Granada (48%) muestran una relación equivalente/originado muy alta.\
+Esto indica que gran parte de su actividad comercial está directamente vinculada a operaciones físicas dentro de la planta.
 
--   **VICTORIA** presenta una caída en los últimos años porque ya no forma parte del grupo, por lo que su actividad operativa real dejó de tener relevancia.
+### **3.2 Acopios con grandes volúmenes totales pero proporciones equivalentes moderadas**
 
--   **ALVEAR** y **BALCARCE** muestran caídas fuertes en equivalentes entre 2023–2024 debido a los cierres por reformas. Estas variaciones no deben interpretarse como pérdida de originación, sino como un impacto operativo temporal.
+Piquete Cabado (37%) y Guardia Escolta (43%) tienen los volúmenes más altos del sistema, pero no toda su originación pasa por planta.\
+Esto es habitual en acopios de gran escala que operan tanto con descarga propia como con desvíos logísticos o comerciales.
 
-En resumen, este gráfico permite distinguir diferencias estructurales entre acopios, diferencias operativas temporales y patrones reales de originación física.
+### **3.3 Las Varillas muestra una proporción equivalente más baja (28%)**
 
-# 3. Tendencia mensual por acopio
+Si bien es uno de los acopios con mayor volumen originado en el sistema, una parte importante de su comercialización no ingresa físicamente a planta.\
+Esto puede deberse a mayor actividad comercial indirecta o a restricciones operativas.
+
+### **3.4 Villegas: caso estructural (0%)**
+
+Su proporción equivalente es 0% porque **no posee acopio físico**, sino que funciona únicamente como oficina comercial.\
+Su volumen es 100% originación y 0% operación física, situación totalmente esperable.
+
+### **3.5 Victoria: actividad en retracción**
+
+Presenta proporciones equivalentes bajas (33%) y volúmenes decrecientes.\
+Esto coincide con su salida progresiva del sistema y explica la baja conversión operativa.
+
+### **3.6 Patrón general del sistema**
+
+Los acopios con planta activa y estable (Balcarce, Itín, Granada, Alvear) tienden a tener altos porcentajes equivalentes.\
+Los acopios grandes y con mucho movimiento regional (Piquete Cabado, Guardia Escolta, Las Varillas) muestran mayor mezcla entre originación y desvíos logísticos.\
+Los casos especiales (Villegas y Victoria) se explican por estructura y no por desempeño.
+
+En conjunto, esta visual permite entender de manera inmediata el rol operativo de cada acopio, diferenciando entre: - actividad comercial pura, - operación física real en planta, - efectos estructurales, - y particularidades de cada zona.
+
+# 4. Tendencia mensual por acopio
 
 En esta sección analizamos la evolución mensual de toneladas **originadas** y **equivalentes** para cada acopio entre 2020 y 2025.
 
@@ -340,21 +338,15 @@ theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
 
-## Comentarios sobre tendencias mensuales
+### Conclusiones
 
--   Los acopios de **PIQUETE CABADO**, **GUARDIA ESCOLTA** e **ITIN** muestran ciclos estacionales muy marcados, con picos definidos de cosecha y una curva de equivalentes que acompaña de manera consistente.
+-   Piquete Cabado, Guardia Escolta e Itín muestran estacionalidad marcada.\
+-   Balcarce y Alvear reflejan los períodos de cierre.\
+-   Las Varillas mantiene un comportamiento estable y creciente.\
+-   Villegas solo muestra originación.\
+-   Victoria desaparece progresivamente del sistema.
 
--   En **BALCARCE** y **ALVEAR** se observa claramente la caída operativa entre **2023 y 2024**, coincidente con el período de reformas de ambas plantas. Esto explica la baja cantidad de toneladas equivalentes registradas.
-
--   **LAS VARILLAS** mantiene un comportamiento estable a lo largo de los años, con una buena relación entre originadas y equivalentes.
-
--   **VILLEGAS**, al no tener planta (solo oficina comercial), siempre presenta originación pero **equivalentes = 0**, como es esperable.
-
--   **VICTORIA** muestra actividad decreciente hasta desaparecer, consistente con el hecho de que ya no pertenece al grupo.
-
-Este gráfico permite rápidamente detectar cambios operativos, patrones estacionales y diferencias en la operatoria de cada acopio.
-
-# 4. Comparación anual por acopio
+# 5. Comparación anual por acopio
 
 Luego de ver la tendencia mensual, ahora analizamos cómo evoluciona la **originación anual** en cada acopio.
 
@@ -389,7 +381,7 @@ tabla_anual <- toneladas |>
   ) |>
   dplyr::arrange(desc(`2025`))   # ordeno por el año más reciente
 
-# 2) Versión SOLO PARA MOSTRAR: en miles y con formato lindo
+# 2) Versión  PARA MOSTRAR
 tabla_anual_miles_tabla <- tabla_anual |>
   dplyr::mutate(
     dplyr::across(
@@ -446,9 +438,9 @@ theme_minimal(base_size = 13)
 
 ```
 
-## Conclusiones del análisis anual
+## Conclusiones principales
 
-### 1. 2025 fue un año excepcional: varios acopios alcanzaron su mejor registro histórico
+### **5.1. 2025 fue un año excepcional: varios acopios alcanzaron su mejor registro histórico**
 
 Los valores muestran que **2025 es el mejor año de la serie 2020–2025 para muchos acopios**, lo que marca una tendencia fuerte al alza en el negocio:
 
@@ -459,7 +451,9 @@ Los valores muestran que **2025 es el mejor año de la serie 2020–2025 para mu
 
 Este comportamiento señala un **fortalecimiento generalizado** en la originación.
 
-### 2. Acopios con crecimiento sostenido en los últimos 3 años (2023 → 2024 → 2025)
+------------------------------------------------------------------------
+
+### **5.2. Acopios con crecimiento sostenido en los últimos 3 años (2023 → 2024 → 2025)**
 
 Se observan trayectorias de crecimiento claras:
 
@@ -470,7 +464,9 @@ Se observan trayectorias de crecimiento claras:
 
 Estos acopios reflejan no solo recuperación, sino **expansión comercial real**.
 
-### 3. Impacto operativo de los cierres (2023–2024)
+------------------------------------------------------------------------
+
+### **5.3. Impacto operativo de los cierres (2023–2024)**
 
 Es fundamental interpretar correctamente los descensos:
 
@@ -480,23 +476,607 @@ Es fundamental interpretar correctamente los descensos:
 
 Los descensos no representan pérdida comercial, sino **indisponibilidad operativa**.
 
-### 4. Acopios líderes que sostienen su posición
+------------------------------------------------------------------------
 
-Más allá de los cambios anuales:
+### **5.4. Acopios líderes que sostienen su posición**
 
--   **GUARDIA ESCOLTA** y **PIQUETE CABADO** siguen siendo pilares fuertes del sistema.\
--   **ITIN** mantiene volúmenes estables y altos, consolidando su rol.
+Más allá de los cambios anuales, se mantienen como referentes:
 
-### 5. Acopios estructuralmente menores
+-   **GUARDIA ESCOLTA** y **PIQUETE CABADO**, pilares fuertes del sistema.\
+-   **ITIN**, con volúmenes estables y altos que consolidan su rol estratégico.
+
+------------------------------------------------------------------------
+
+### **5.5. Acopios estructuralmente menores**
 
 -   **VICTORIA** muestra niveles bajos porque ya no pertenece al grupo.\
--   **VILLEGAS**, aún sin acopio físico, logra crecimiento destacable y consistente.
+-   **VILLEGAS**, aunque sin acopio físico, logra un **crecimiento destacable y consistente**.
 
-## Resumen ejecutivo
+------------------------------------------------------------------------
+
+### **Resumen**
 
 -   **2025 marca un año récord** para varios acopios claves.\
--   Las tendencias de crecimiento de los últimos 3 años muestran un **fortalecimiento sostenido**.\
--   Las caídas en 2023–2024 responden a factores operativos y no comerciales.\
--   El mapa productivo se reorganiza con acopios que crecen, otros que se recuperan y algunos que dejan el sistema.
+-   Las tendencias de los últimos 3 años indican un **fortalecimiento sostenido del sistema**.\
+-   Las caídas de 2023–2024 se explican por **factores operativos**, no comerciales.\
+-   El mapa productivo se reorganiza entre acopios que crecen, otros que se recuperan y algunos que salen del sistema.
 
-Este análisis aporta una visión clara para la planificación comercial y operativa hacia adelante.
+# 6. Evolución del ranking anual por acopio
+
+Para complementar la comparación año a año, es útil visualizar cómo cambia el **ranking de los acopios en términos de toneladas originadas** entre 2020 y 2025.
+
+Este gráfico permite ver de manera muy clara:
+
+-   Quiénes se mantienen en los primeros puestos.
+-   Qué acopios muestran mejoras o deterioros en su posición relativa.
+-   Cómo impactan ciertos eventos operativos (cierres, fusiones, asignaciones comerciales) en la performance anual.
+
+```{r}
+#| label: grafico-bump-ranking
+#| echo: false
+#| fig-width: 10
+#| fig-height: 6
+
+rank_orig <- resumen_acopio_anio |>
+  dplyr::group_by(anio) |>
+  dplyr::arrange(dplyr::desc(orig_tn_anio)) |>
+  dplyr::mutate(
+    rank = dplyr::row_number()
+  ) |>
+  dplyr::ungroup()
+
+labels_df <- rank_orig |>
+  group_by(acopio) |>
+  filter(anio == max(anio)) |>
+  ungroup()
+
+
+
+ggplot(rank_orig,
+       aes(x = anio,
+           y = rank,
+           color = acopio,
+           group = acopio)) +
+  
+  geom_line(linewidth = 1.4) +
+  geom_point(size = 4) +
+  
+  # Texto al final de la línea
+  geom_text(
+    data = labels_df,
+    aes(label = acopio),
+    hjust = -0.15,      # corre un poquito a la derecha
+    size = 4.2,
+    fontface = "bold"
+  ) +
+  
+  
+  scale_y_reverse(breaks = 1:max(rank_orig$rank)) +  # 1 arriba, n abajo
+  
+  # Extiendo  el eje x para que entre el texto
+  scale_x_continuous(
+    breaks = sort(unique(rank_orig$anio)),
+    expand = expansion(mult = c(0.02, 0.12))) +
+  
+  labs(
+    title = "Evolución del ranking anual de originación por acopio",
+    x = "Año",
+    y = "Ranking (1 = mejor)"
+  ) +
+  
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold")
+  )
+
+
+```
+
+## Conclusiones
+
+El gráfico muestra la **evolución del ranking de originación (1 = mayor volumen)** para cada acopio entre 2020 y 2025. No estamos mirando toneladas, sino **posición relativa**: quién gana, quién sostiene y quién pierde terreno.
+
+### Análisis resumido del ranking anual de originación (2020–2025)
+
+El gráfico muestra tres comportamientos bien definidos entre los acopios:
+
+### **6.1. Liderazgo claro:**
+
+Piquete Cabado, Guardia Escolta, Itín y Las Varillas dominan sistemáticamente las primeras posiciones. Dentro de este grupo, Piquete Cabado se consolida en la punta en los últimos años, e Itín tiene un período muy fuerte entre 2022 y 2024. Las Varillas destaca por recuperarse del bache de 2024 y lograr el **1° puesto en 2025**, su mejor resultado del período.
+
+### **6.2. Segmento medio estable:**
+
+Balcarce y Granada se mueven de forma pareja entre los puestos 4° y 7°, con leves mejoras o retrocesos según el año, pero sin saltos relevantes hacia el liderazgo.
+
+### **6.3. Segmento rezagado:**
+
+Villegas, Alvear y Victoria permanecen mayormente en las últimas posiciones. Villegas es el único de este grupo que muestra una mejora sostenida en 2024–2025.
+
+### **Conclusión:**
+
+La serie refleja estabilidad en los liderazgos, algunas recuperaciones puntuales y movimientos moderados en la mitad de la tabla. 2025 se destaca porque Las Varillas alcanza el **1° puesto**, y porque Villegas mejora su posición histórica.
+
+# 7. Podio anual de originación
+
+El siguiente gráfico muestra el “podio” de los tres acopios con mayor volumen originado en cada año.\
+Esto permite ver no solo quién gana, sino también cómo cambia el top 3 en el tiempo.
+
+Los valores están expresados en miles de toneladas para facilitar la lectura.
+
+```{r}
+#| label: grafico-podio-anual
+#| echo: false
+#| fig-width: 10
+#| fig-height: 6
+
+rank_podio <- rank_orig |>
+dplyr::group_by(anio) |>
+dplyr::arrange(dplyr::desc(orig_tn_anio)) |>
+dplyr::slice(1:3) |>
+dplyr::mutate(
+rank_label = factor(rank,
+levels = c(1,2,3),
+labels = c("🥇 1°","🥈 2°","🥉 3°"))
+) |>
+dplyr::ungroup()
+
+ggplot(rank_podio,
+aes(x = factor(anio),
+y = orig_tn_anio,
+fill = rank_label)) +
+
+geom_col(position = "dodge") +
+
+geom_text(aes(label = acopio),
+position = position_dodge(width = 0.9),
+angle = 90,
+hjust = 1.3,
+color = "white",
+fontface = "bold",
+size = 3.5) +
+
+geom_text(
+aes(label = paste0(round(orig_tn_anio/1000, 0), "k")),
+position = position_dodge(width = 0.9),
+vjust = -0.4,
+fontface = "bold",
+size = 3.2
+) +
+
+scale_fill_manual(values = c(
+"🥇 1°" = "gold",
+"🥈 2°" = "grey70",
+"🥉 3°" = "#CD7F32"
+)) +
+
+labs(
+title = "Podio de originación anual (Top 3 por año)",
+x = "Año",
+y = "Toneladas originadas",
+fill = "Ranking"
+) +
+theme_minimal(base_size = 13)
+
+```
+
+## Conclusiones — Podio anual de originación (Top 3 por año)
+
+El gráfico del podio anual permite ver rápidamente quiénes lideran la originación cada año, qué acopios ganan terreno, cuáles pierden participación y cómo evoluciona la competencia entre los acopios principales.
+
+A partir de los datos 2020–2025, se observan cuatro conclusiones centrales:
+
+### **7.1 Liderazgo consistente de un grupo reducido de acopios**
+
+Entre 2020 y 2025, los acopios **Piquete Cabado, Guardia Escolta, Itín y Las Varillas** conforman el núcleo que domina los primeros puestos todos los años.
+
+-   **Guardia Escolta** lidera en 2020 y vuelve al podio en casi todos los años posteriores.\
+-   **Piquete Cabado** sostiene un rendimiento muy estable y aparece dentro del top 3 de manera recurrente.\
+-   **Itín** muestra un ciclo fuerte, especialmente en 2021 y 2022.\
+-   **Las Varillas** gana protagonismo y se transforma en un líder claro hacia el final del período.
+
+Este grupo explica la mayor parte de la variación en los primeros puestos y concentra el volumen competitivo del sistema.
+
+------------------------------------------------------------------------
+
+### **7.2 2025 marca un punto de quiebre: Las Varillas toma el liderazgo**
+
+El año 2025 muestra una reconfiguración importante en el podio, donde **Las Varillas alcanza el primer lugar con 220 mil toneladas**, su mejor registro histórico dentro del período analizado.
+
+El salto de Las Varillas en 2025 es uno de los hechos más llamativos de toda la serie.
+
+------------------------------------------------------------------------
+
+### **7.3 Los valores absolutos del podio crecen nuevamente en 2025**
+
+Comparando los máximos por año:
+
+-   **2020 – 253k** (Guardia Escolta)\
+-   **2021 – 228k** (Guardia Escolta)\
+-   **2022 – 193k** (Itín)\
+-   **2023 – 159k** (Piquete Cabado)\
+-   **2024 – 182k** (Piquete Cabado)\
+-   **2025 – 220k** (Las Varillas)
+
+Esto muestra que **2025 recupera niveles de pico**, después de un 2023–2024 más moderado.
+
+En términos comerciales, 2025 representa un año fuerte por:
+
+-   la recuperación de acopios que estaban en obras,\
+-   una mayor actividad general del sistema,\
+-   la reactivación en varias zonas de influencia.
+
+# 8. Toneladas originadas por acopio (barras apiladas, miles)
+
+El gráfico muestra la evolución del volumen originado por cada acopio a lo largo del período 2020–2025, expresado en **miles de toneladas**.\
+
+Permite comparar tamaños relativos, detectar tendencias de crecimiento o caída y entender el rol comercial de cada acopio dentro del sistema.
+
+```{r}
+#| label: grafico-barras-miles
+#| echo: false
+#| fig-width: 10
+#| fig-height: 7
+
+orden_acopios <- resumen_acopio_anio |>
+group_by(acopio) |>
+summarise(total = sum(orig_tn_anio)) |>
+arrange(total) |>
+pull(acopio)
+
+resumen_acopio_anio_miles <- resumen_acopio_anio |>
+mutate(
+orig_tn_miles = orig_tn_anio / 1000,
+orig_tn_miles_round = round(orig_tn_miles, 0),
+anio = factor(anio)
+)
+
+ggplot(resumen_acopio_anio_miles,
+aes(x = orig_tn_miles,
+y = factor(acopio, levels = orden_acopios),
+fill = anio)) +
+
+geom_col(position = position_stack(reverse = TRUE)) +
+
+geom_text(
+aes(label = paste0(orig_tn_miles_round, "k")),
+position = position_stack(vjust = 0.5, reverse = TRUE),
+size = 2.8,
+fontface = "bold"
+) +
+
+scale_fill_brewer(palette = "Set2") +
+
+scale_x_continuous(labels = ~ paste0(round(.x, 0), "k")) +
+
+labs(
+title = "Toneladas originadas por acopio (2020–2025)",
+subtitle = "Valores expresados en miles de toneladas",
+x = "Ton (miles)",
+y = "Acopio",
+fill = "Año"
+) +
+theme_minimal(base_size = 13)
+
+```
+
+## Conclusiones principales
+
+### **8.1. Piquete Cabado, Guardia Escolta e Itín conforman el grupo de mayor volumen absoluto**
+
+### **8.2. Las Varillas se convierte en uno de los acopios más dinámicos y con mayor crecimiento**
+
+### **8.3. Balcarce y Alvear muestran claramente el impacto de las obras operativas (2023–2024)**
+
+### **8.4. Villegas crece de forma muy marcada a pesar de no tener planta física**
+
+### **8.5. Victoria va perdiendo relevancia hasta casi desaparecer**
+
+------------------------------------------------------------------------
+
+## **El total del sistema crece fuertemente en 2025**
+
+Al observar la suma de barras por acopio (y por año), se nota:
+
+-   2023 es un año flojo por obras.\
+-   2024 empieza a recomponerse.\
+-   **2025 es el mejor año de todo el período, con varios acopios en máximos históricos.**
+
+Esto sugiere un incremento global en:
+
+-   capacidad comercial\
+-   recuperación operativa\
+-   disponibilidad de plantas\
+-   y posiblemente mejores condiciones de mercado o cosecha.
+
+# 9. Participación porcentual de cada año dentro de cada acopio
+
+Aquí se muestra, para cada acopio, qué porcentaje de su volumen total corresponde a cada año.\
+Es una vista **100% apilada**, útil para ver la distribución interna de cada acopio, independientemente de su tamaño absoluto.
+
+```{r}
+#| label: grafico-barras-100
+#| echo: false
+#| fig-width: 10
+#| fig-height: 7
+
+resumen_acopio_pct <- resumen_acopio_anio |>
+group_by(acopio) |>
+mutate(pct = orig_tn_anio / sum(orig_tn_anio),
+anio = factor(anio)) |>
+ungroup()
+
+ggplot(resumen_acopio_pct,
+aes(x = pct,
+y = factor(acopio, levels = orden_acopios),
+fill = anio)) +
+geom_col(position = position_stack(reverse = TRUE)) +
+geom_text(
+aes(label = scales::percent(pct, accuracy = 1, decimal.mark = ",")),
+position = position_stack(vjust = 0.5, reverse = TRUE),
+size = 3
+) +
+scale_fill_brewer(palette = "Set2") +
+scale_x_continuous(labels = scales::percent_format(decimal.mark = ",")) +
+labs(
+title = "Participación porcentual de cada año en la originación total",
+subtitle = "Barras 100% apiladas (2020–2025)",
+x = "Participación (%)",
+y = "Acopio"
+) +
+theme_minimal(base_size = 13)
+
+```
+
+A partir del análisis se destacan los siguientes puntos:
+
+### **9.1. 2025 es el año con mayor peso para la mayoría de los acopios**
+
+Para casi todos los acopios, 2025 representa entre **17% y 28%** de su originación total del período. Esto confirma que 2025 fue un año excepcionalmente alto en términos de actividad comercial para el sistema.
+
+### **9.2. 2023 y 2024 muestran participaciones bajas de manera generalizada**
+
+En la mayoría de los acopios, los años 2023 y 2024 explican una porción reducida de su total histórico. Este comportamiento es coherente con factores externos que afectaron al sector:
+
+\- sequía 2023,
+
+-   ola de calor tardía,
+
+\- impacto de la chicharrita en la campaña 2023/24.
+
+Estos eventos redujeron la disponibilidad de grano y el flujo operativo en todo el mercado.
+
+### **9.3. Acopios con distribución equilibrada a lo largo del período**
+
+Piquete Cabado, Guardia Escolta e Itín presentan una distribución bastante pareja entre los seis años analizados. Esto indica **estabilidad comercial** y menor dependencia de un solo año.
+
+### **9.4. Las Varillas: fuerte peso en los extremos del período**
+
+Las Varillas muestra dos momentos muy marcados: - 2020–2021 explican una porción significativa de su historia, - 2025 representa su valor más alto (25% del total).
+
+Los años intermedios tienen menor peso, lo que revela fluctuaciones pero también un crecimiento acelerado hacia el final.
+
+### **9.5. Villegas: crecimiento sostenido y concentrado en los últimos años**
+
+Villegas —a pesar de ser solo oficina comercial— muestra un cambio estructural: - baja participación en 2020–2021, - fuerte incremento en 2024–2025 (24% y 28%).
+
+Esto refleja una expansión comercial notable.
+
+### **9.6. Victoria: pérdida progresiva de relevancia**
+
+Victoria concentra más del 60% de su volumen histórico en 2020–2021. Su participación cae fuertemente en 2023–2025, lo cual coincide con su salida del sistema.
+
+------------------------------------------------------------------------
+
+### **Resumen clave**
+
+-   2025 tiene el mayor peso relativo en la mayoría de los acopios.
+-   2023–2024 reflejan caídas generalizadas por factores climáticos y sanitarios.
+-   Algunos acopios mantienen una distribución estable en el tiempo.
+-   Las Varillas y Villegas muestran crecimiento fuerte en los últimos años.
+-   Victoria pierde su relevancia progresivamente.
+
+# 10. Participación de cada acopio dentro del total anual del sistema
+
+Este gráfico es complementario al anterior: en vez de mostrar cómo se compone cada acopio, muestra **cómo se compone el total de cada año**.
+
+Permite identificar:
+
+-   quién gana participación,
+
+-   quién pierde,
+
+-   cómo evoluciona la distribución total del negocio.
+
+```{r}
+#| label: grafico-participacion-sistema
+#| echo: false
+#| fig-width: 10
+#| fig-height: 7
+
+participacion_anual <- resumen_acopio_anio |>
+group_by(anio) |>
+mutate(pct = orig_tn_anio / sum(orig_tn_anio),
+pct_label = scales::percent(pct, accuracy = 1, decimal.mark = ",")) |>
+ungroup()
+
+orden_acopios_global <- participacion_anual |>
+group_by(acopio) |>
+summarise(total = sum(orig_tn_anio)) |>
+arrange(desc(total)) |>
+pull(acopio)
+
+ggplot(participacion_anual,
+aes(x = factor(anio),
+y = pct,
+fill = factor(acopio, levels = orden_acopios_global))) +
+
+geom_col(width = 0.85, color = "white") +
+geom_text(
+aes(label = pct_label),
+position = position_stack(vjust = 0.5),
+size = 3,
+fontface = "bold"
+) +
+
+scale_y_continuous(labels = scales::percent_format(decimal.mark = ",")) +
+
+scale_fill_manual(values = c(
+"PIQUETE CABADO"   = "#66C2A5",
+"GUARDIA ESCOLTA"  = "#FC8D62",
+"ITIN"             = "#8DA0CB",
+"LAS VARILLAS"     = "#E78AC3",
+"BALCARCE"         = "#A6D854",
+"GRANADA"          = "#FFD92F",
+"VILLEGAS"         = "#E5C494",
+"ALVEAR"           = "#B3B3B3",
+"VICTORIA"         = "#A1C3D1"
+)) +
+
+labs(
+title = "Participación de cada acopio en la originación total anual",
+subtitle = "Barras 100% apiladas – origen anual (2020–2025)",
+x = "Año",
+y = "Participación (%)",
+fill = "Acopio"
+) +
+theme_minimal(base_size = 13)
+
+```
+
+## Conclusiones — Participación de cada acopio en la originación total anual
+
+*Barras 100% apiladas (2020–2025)*
+
+Este gráfico muestra cómo se reparte el total originado del sistema entre los distintos acopios para cada año. A diferencia de otros gráficos, acá el foco no está en cuánto origina cada acopio, sino en **qué proporción del mercado total ocupa cada uno**.
+
+A partir del análisis se destacan los siguientes puntos:
+
+### **1. Cuatro acopios concentran la mayor parte del mercado en todos los años**
+
+PIQUETE CABADO, GUARDIA ESCOLTA, ITÍN y LAS VARILLAS explican entre **58% y 70%** del total anual según el año. Aunque varían en posición relativa, el liderazgo del sistema siempre está en manos de este mismo grupo.
+
+### **2. LAS VARILLAS gana participación de forma muy marcada en 2025**
+
+Su participación crece de: - 16% en 2020, - 17% en 2021, - 11%–13% entre 2022 y 2023, - 10% en 2024, - **19% en 2025 (su valor más alto del período).**
+
+Esto confirma su fuerte crecimiento comercial y su consolidación dentro del sistema.
+
+### **3. PIQUETE CABADO y GUARDIA ESCOLTA se mantienen como referentes del mercado**
+
+Ambos acopios muestran participaciones relativamente estables: - PIQUETE CABADO se mueve entre 16% y 25% según el año. - GUARDIA ESCOLTA tiene entre 14% y 21%.
+
+Pese a las variaciones interanuales, su peso dentro del sistema sigue siendo sostenidamente alto.
+
+### **4. ITÍN presenta oscilaciones, pero siempre dentro del segmento principal**
+
+ITÍN se mantiene entre **11% y 22%**, con su máxima participación en 2023. Es un acopio con rol consistente en el tablero general, aunque más sensible a las fluctuaciones anuales.
+
+### **5. BALCARCE y ALVEAR muestran aumentos de participación tras las obras**
+
+Ambos acopios pierden participación entre 2022 y 2023, y luego recuperan en 2024–2025: - BALCARCE pasa de 7% (2023) a 12% (2024) y 12% (2025). - ALVEAR crece de 3%–5% en 2022–2023 a 7% en 2024 y 7% en 2025.
+
+La participación acompaña su disponibilidad operativa.
+
+### **6. VILLEGAS aumenta su participación de forma sostenida**
+
+Como oficina comercial sin acopio físico, VILLEGAS comienza con participaciones bajas (7% en 2020–2021), pero: - sube a 6%–8% en 2022–2023, - y alcanza 11% en 2024 y 9% en 2025.
+
+Su crecimiento es firme y consistente.
+
+### **7. VICTORIA reduce progresivamente su participación**
+
+Su participación cae de 6%–7% en 2020–2021 a valores mínimos en 2023–2025. Esto es coherente con su salida del sistema.
+
+------------------------------------------------------------------------
+
+### **Resumen clave**
+
+-   El liderazgo del sistema está concentrado en cuatro acopios principales.\
+-   LAS VARILLAS y VILLEGAS muestran un crecimiento destacado.\
+-   PIQUETE CABADO y GUARDIA ESCOLTA sostienen participaciones altas y estables.\
+-   BALCARCE y ALVEAR recuperan peso tras sus obras.\
+-   VICTORIA se va retirando del sistema progresivamente.
+
+# 11 . Animación global YTD 2020–2025 (carrera histórica)
+
+```{r}
+ton_ytd_global <- toneladas %>%
+  arrange(acopio, fecha) %>%              # Orden temporal real
+  group_by(acopio) %>%                   
+  mutate(
+    orig_ytd_global  = cumsum(orig_mes),   # ACUMULADO GLOBAL desde 2020
+    equiv_ytd_global = cumsum(equiv_mes),
+    frame_mes = factor(fecha, levels = unique(fecha))  # frames reales: 2020-01-01 ... 2025-10-01
+  ) %>%
+  ungroup()
+
+escala_tamano <- 6000   
+
+
+plot_ytd_global <- ton_ytd_global %>%
+  plot_ly(
+    x = ~orig_ytd_global,
+    y = ~acopio,
+    frame = ~frame_mes,
+    
+    type = "scatter",
+    mode = "markers",        
+    
+    # BURBUJAS
+    marker = list(
+      sizemode = "area",
+      size = ~orig_ytd_global / escala_tamano,
+      color = ~acopio,        # color por acopio
+      opacity = 0.85,
+      line = list(width = 1, color = "#000")
+    ),
+    
+    hovertemplate = paste(
+      "<b>%{y}</b><br>",
+      "Fecha: %{frame}<br>",
+      "Ton acumuladas: %{x:,.0f}<extra></extra>"
+    )
+  ) %>%
+  layout(
+    title = "Evolución histórica acumulada (2020–2025)",
+    xaxis = list(
+      title = "Toneladas acumuladas desde 2020",
+      separatethousands = TRUE,
+      tickformat = ",."
+    ),
+    yaxis = list(title = "Acopio"),
+    separators = ".,"
+  ) %>%
+  animation_opts(
+    frame = 600,
+    easing = "linear",
+    redraw = FALSE
+  ) %>%
+  animation_slider(
+    currentvalue = list(prefix = "Mes: ")
+  )
+
+plot_ytd_global
+```
+
+# Conclusión final
+
+El análisis integral de la originación por acopio entre 2020 y 2025 permite obtener una visión clara y estructurada del desempeño comercial, operativo y estratégico del sistema a lo largo del período. La combinación de métricas anuales, mensuales, equivalentes, rankings y participaciones relativas permite no solo cuantificar la actividad, sino también interpretar correctamente su contexto.
+
+En términos generales, los resultados muestran que:
+
+-   **2025 se consolida como el año de mayor actividad**, con niveles récord en múltiples acopios y una recuperación plena del sistema después de los efectos climáticos y sanitarios que afectaron 2023–2024.
+-   **Un grupo estable de acopios lidera consistentemente**: Piquete Cabado, Guardia Escolta, Itín y Las Varillas explican gran parte del volumen total y sostienen el núcleo de la operación comercial.
+-   **Las Varillas emerge como un actor estratégicamente creciente**, alcanzando en 2025 el liderazgo del sistema y mostrando un salto significativo respecto de años previos.
+-   **Los efectos operativos (cierres temporales)** se reflejan con claridad en las series, especialmente en Alvear y Balcarce, lo que demuestra la importancia de interpretar los datos considerando la disponibilidad física de las plantas.
+-   **Villegas sorprende con un crecimiento sostenido**, incluso sin acopio físico, evidenciando una expansión comercial relevante dentro de su zona de influencia.
+-   **Victoria reduce su participación hasta volverse marginal**, en línea con su salida progresiva del sistema.
+-   El análisis de participaciones confirma que, más allá de las fluctuaciones interanuales, el **negocio mantiene una estructura concentrada**, con una distribución que es relativamente estable en el tiempo y donde las variaciones tienen explicaciones claras (clima, obras, dinámica comercial).
+
+En conjunto, el estudio revela un sistema que: - **se recupera con fuerza luego de un período adverso**,\
+- **consolida liderazgos**,\
+- **redistribuye roles dentro de la red de acopios**,\
+- y **muestra señales claras de crecimiento estructural hacia 2025**.
+
+Este trabajo permite contar con una base sólida para la toma de decisiones comerciales y operativas, para el seguimiento de desempeño por acopio y para la planificación estratégica futura.
