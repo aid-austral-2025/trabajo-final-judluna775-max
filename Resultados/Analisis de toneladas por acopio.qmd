@@ -1,0 +1,416 @@
+---
+title: "Análisis de toneladas históricas por acopio"
+author: "Judith Luna"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    theme: flatly
+    code-fold: true
+editor: visual
+---
+
+# 
+
+# Preparación de los datos y consideraciones del negocio
+
+Antes de comenzar con el análisis, se realizaron varios pasos de preparación y depuración de la información original. A continuación se resumen los puntos importantes para comprender correctamente los resultados.
+
+## Depuración y selección temporal
+
+La base histórica incluye información desde 2017; sin embargo, **solo se analiza desde 2020 en adelante**. Los motivos:
+
+-   Antes de 2020 no existía información completa y homogénea para todos los acopios.
+-   El conjunto de acopios surgen de una fusion de empresas y solo hay informacion historica de una parte.
+-   A partir de 2020 la estructura de originación y equivalentes se vuelve consistente.
+
+Por este motivo, el análisis se restringe al período **2020–2025** para asegurar comparabilidad y robustez en todas las conclusiones.
+
+## Significado de “toneladas equivalentes”
+
+En este informe se utilizan dos métricas fundamentales:
+
+-   **Toneladas originadas (orig_mes)**: volumen operado por el equipo comercial, independientemente de dónde se descargue o procese.
+-   **Toneladas equivalentes (equiv_mes)**: volumen que **efectivamente pasa por el acopio**, es decir, movimientos que físicamente ingresan a la planta.
+
+Por eso, en varios gráficos se analiza la relación entre ambos volúmenes.
+
+## Particularidades de ciertos acopios
+
+Hay dos casos específicos a tener en cuenta:
+
+-   **VICTORIA**: ya no pertenece al grupo actualmente. Por eso, en los últimos años presenta volúmenes más bajos o nulos, especialmente en toneladas equivalentes.
+
+-   **VILLEGAS**: si bien aparece como acopio en la base, **no existe un acopio físico**.\
+    Funciona únicamente como oficina comercial.\
+    Esto explica por qué sus toneladas equivalentes son cero:\
+    *no tiene un punto físico donde se descargue mercadería*.
+
+-   Para interpretar correctamente los volúmenes equivalentes (mercadería que efectivamente pasa por el acopio), es importante considerar ciertos eventos operativos:
+
+    -   **ALVEAR** y **BALCARCE** estuvieron **cerrados por reformas entre 2023 y 2024**.\
+        Ambas plantas fueron renovadas y no operaron con normalidad durante ese período.
+
+    -   **BALCARCE** retomó actividad antes, aproximadamente a mediados de 2024.
+
+    -   **ALVEAR** volvió a operar recién a inicios de 2025.
+
+    Esto explica la caída en toneladas equivalentes en esos años y evita interpretar los descensos como pérdida comercial, cuando en realidad fueron consecuencia directa de la disponibilidad operativa de las plantas.
+
+Estos aspectos son normales y esperables, y no representan errores en los datos.
+
+------------------------------------------------------------------------
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(here)
+library(scales)
+library(RColorBrewer)
+library(plotly)
+
+# 1) Lectura del dataset procesado
+toneladas <- readr::read_csv(
+  here::here("Datos_procesados", "toneladas_limpias.csv"),
+  show_col_types = FALSE
+)
+
+# 2) Nos quedamos solo con 2020–2025
+toneladas <- toneladas |>
+  dplyr::filter(anio >= 2020)
+
+# 3) Enriquecemos con nombres de mes y etiqueta año-mes
+toneladas <- toneladas |>
+  dplyr::mutate(
+    mes_nombre = factor(
+      mes,
+      levels = 1:12,
+      labels = c("Ene","Feb","Mar","Abr","May","Jun",
+                 "Jul","Ago","Sep","Oct","Nov","Dic")
+    ),
+    anio_mes = paste(anio, sprintf("%02d", mes), sep = "-")
+  )
+```
+
+## Vista previa de los datos utilizados
+
+Antes de avanzar con los análisis, se muestra un resumen de la estructura del dataset final.\
+Esto permite verificar que las variables claves (**acopio**, **año**, **mes**, **originadas**, **equivalentes**) estén correctamente cargadas.
+
+```{r}
+#| label: glimpse-toneladas
+#| echo: false
+
+dplyr::glimpse(toneladas)
+```
+
+# 1. Panorama general por acopio
+
+En esta sección se muestra el **ranking histórico de toneladas originadas por acopio** en el período 2020–2025.
+
+La idea es tener una foto rápida de: - qué acopios lideran en volumen, - cuáles se ubican en un segundo escalón, - y quiénes tienen participación más acotada.
+
+```{r}
+#| label: grafico-ranking-historico
+#| echo: false
+#| fig-width: 8
+#| fig-height: 5
+
+# Resumen anual por acopio
+resumen_acopio_anio <- toneladas |>
+  dplyr::group_by(acopio, anio) |>
+  dplyr::summarise(
+    orig_tn_anio  = sum(orig_mes,  na.rm = TRUE),
+    equiv_tn_anio = sum(equiv_mes, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Resumen histórico total
+resumen_acopio_total <- resumen_acopio_anio |>
+  dplyr::group_by(acopio) |>
+  dplyr::summarise(
+    orig_tn_total  = sum(orig_tn_anio),
+    equiv_tn_total = sum(equiv_tn_anio),
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(desc(orig_tn_total))
+
+ggplot(resumen_acopio_total, 
+       aes(x = reorder(acopio, orig_tn_total),
+           y = orig_tn_total)) +
+  geom_col(fill = "#2E86C1") +
+  geom_text(
+    aes(label = scales::comma(orig_tn_total,
+                              big.mark = ".", 
+                              decimal.mark = ",")),
+    hjust = 1.1,
+    size = 4,
+    fontface = "bold",
+    color = "white"
+  ) +
+  coord_flip() +
+  scale_y_continuous(
+    labels = ~ scales::comma(.x, big.mark = ".", decimal.mark = ",")
+  ) +
+  labs(
+    title = "Ranking histórico de toneladas originadas por acopio",
+    subtitle = "Totales acumulados 2020–2025",
+    x = "Acopio",
+    y = "Toneladas originadas"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+## Comentarios del ranking histórico
+
+-   **GUARDIA ESCOLTA** y **PIQUETE CABADO** aparecen como los acopios con mayor volumen acumulado de originación en todo el período.
+-   **ITIN** y **LAS VARILLAS** se consolidan en un segundo escalón, con volúmenes altos y bastante estables.
+-   **ALVEAR**, **VILLEGAS** y **VICTORIA** concentran una porción menor del total.
+
+Más adelante vamos a ver cómo estos volúmenes se reparten año a año y cómo cambia el ranking en el tiempo.
+
+# 2. Relación entre toneladas originadas y toneladas equivalentes
+
+En esta sección analizamos cómo se reparte el volumen originado entre:
+
+-   **Toneladas originadas**: todo el volumen gestionado comercialmente.
+-   **Toneladas equivalentes**: volumen que efectivamente pasa por la planta.
+
+Comparar estos dos indicadores permite entender el rol operativo de cada acopio, identificar cierres o particularidades operativas y distinguir entre originación comercial y utilización real de la capacidad física de planta.
+
+Recordar puntos importantes del negocio:
+
+-   **VILLEGAS** es una oficina comercial, por eso sus toneladas equivalentes son cero.
+-   **VICTORIA** ya no pertenece al grupo, por lo que su actividad equivalente cae.
+-   **ALVEAR y BALCARCE** tuvieron períodos de cierre (2023–2024), lo cual explica caídas que no reflejan pérdida comercial sino reformas estructurales.
+
+A continuación se presenta la comparación global 2020–2025.
+
+```{r}
+#| label: grafico-orig-vs-equiv
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+resumen_equiv <- toneladas |>
+dplyr::group_by(acopio) |>
+dplyr::summarise(
+orig_total  = sum(orig_mes,  na.rm = TRUE),
+equiv_total = sum(equiv_mes, na.rm = TRUE),
+pct_equiv   = equiv_total / orig_total,
+.groups = "drop"
+)
+
+ggplot(resumen_equiv, aes(y = reorder(acopio, orig_total))) +
+
+# Barra total originada (fondo azul claro)
+
+geom_col(aes(x = orig_total),
+fill = "#2E86C1", alpha = 0.40) +
+
+# Barra equivalente (verde)
+
+geom_col(aes(x = equiv_total),
+fill = "#117A65") +
+
+# Porcentaje equivalente sobre originadas
+
+geom_label(
+aes(
+x = equiv_total * 0.92,
+label = scales::percent(pct_equiv, accuracy = 1,
+decimal.mark = ",")
+),
+fill = "#FDFEFE",
+color = "black",
+fontface = "bold",
+size = 3.5,
+label.size = 0
+) +
+
+# Valor absoluto equivalente
+
+geom_text(
+aes(x = equiv_total * 0.5,
+label = scales::comma(equiv_total,
+big.mark=".", decimal.mark=",")),
+color = "white",
+fontface = "bold",
+size = 3.8
+) +
+
+# Valor absoluto originado (a la derecha)
+
+geom_text(
+aes(x = orig_total,
+label = scales::comma(orig_total,
+big.mark=".", decimal.mark=",")),
+hjust = 1.1,
+color = "black",
+fontface = "bold",
+size = 3.5
+) +
+
+scale_x_continuous(
+labels = ~ scales::comma(.x, big.mark = ".", decimal.mark = ",")
+) +
+
+labs(
+title = "Porción equivalente dentro de la originación total",
+subtitle = "Equivalentes (verde) como parte del total originado por acopio",
+x = "Toneladas",
+y = "Acopio"
+) +
+theme_minimal(base_size = 13)
+
+```
+
+## Comentarios sobre la relación origen–equivalente
+
+-   **PIQUETE CABADO** y **GUARDIA ESCOLTA** muestran altos volúmenes equivalentes, lo que indica una operación estable y una elevada proporción de mercadería que ingresa a planta.
+
+-   **ITIN** y **LAS VARILLAS** mantienen una relación equilibrada, lo cual sugiere una buena coordinación entre originación comercial y disponibilidad operativa.
+
+-   **VILLEGAS**, al ser únicamente oficina comercial, no registra toneladas equivalentes. Esto es totalmente normal y esperado.
+
+-   **VICTORIA** presenta una caída en los últimos años porque ya no forma parte del grupo, por lo que su actividad operativa real dejó de tener relevancia.
+
+-   **ALVEAR** y **BALCARCE** muestran caídas fuertes en equivalentes entre 2023–2024 debido a los cierres por reformas. Estas variaciones no deben interpretarse como pérdida de originación, sino como un impacto operativo temporal.
+
+En resumen, este gráfico permite distinguir diferencias estructurales entre acopios, diferencias operativas temporales y patrones reales de originación física.
+
+# 3. Tendencia mensual por acopio
+
+En esta sección analizamos la evolución mensual de toneladas **originadas** y **equivalentes** para cada acopio entre 2020 y 2025.
+
+Este análisis permite identificar:
+
+-   patrones estacionales de originación,
+-   comportamientos distintos según región,
+-   efectos operativos (cierres, reaperturas, cambios de capacidad),
+-   y diferencias entre lo que se origina y lo que ingresa a planta.
+
+Al visualizar ambas curvas juntas, se puede ver claramente **qué acopios mantienen una relación estable entre originación y operación física**, y dónde aparecen desvíos relevantes.
+
+```{r}
+#| label: grafico-tendencia-mensual
+#| echo: false
+#| fig-width: 10
+#| fig-height: 7
+
+ggplot(toneladas, aes(x = fecha)) +
+
+# Línea de originadas
+
+geom_line(aes(y = orig_mes, color = "Originadas"), linewidth = 0.8) +
+
+# Línea de equivalentes
+
+geom_line(aes(y = equiv_mes, color = "Equivalentes"), linewidth = 0.8) +
+
+facet_wrap(~ acopio, scales = "free_y") +
+
+scale_color_manual(
+values = c(
+"Originadas" = "#2E86C1",
+"Equivalentes" = "#117A65"
+)
+) +
+
+scale_x_date(
+date_breaks = "1 year",
+date_labels = "%Y",
+limits = as.Date(c("2020-01-01", "2025-12-31")),
+expand = c(0,0)
+) +
+
+labs(
+title = "Evolución mensual de toneladas originadas y equivalentes por acopio",
+subtitle = "Período 2020–2025",
+x = "Año",
+y = "Toneladas",
+color = "Serie"
+) +
+
+theme_minimal(base_size = 13) +
+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+## Comentarios sobre tendencias mensuales
+
+-   Los acopios de **PIQUETE CABADO**, **GUARDIA ESCOLTA** e **ITIN** muestran ciclos estacionales muy marcados, con picos definidos de cosecha y una curva de equivalentes que acompaña de manera consistente.
+
+-   En **BALCARCE** y **ALVEAR** se observa claramente la caída operativa entre **2023 y 2024**, coincidente con el período de reformas de ambas plantas. Esto explica la baja cantidad de toneladas equivalentes registradas.
+
+-   **LAS VARILLAS** mantiene un comportamiento estable a lo largo de los años, con una buena relación entre originadas y equivalentes.
+
+-   **VILLEGAS**, al no tener planta (solo oficina comercial), siempre presenta originación pero **equivalentes = 0**, como es esperable.
+
+-   **VICTORIA** muestra actividad decreciente hasta desaparecer, consistente con el hecho de que ya no pertenece al grupo.
+
+Este gráfico permite rápidamente detectar cambios operativos, patrones estacionales y diferencias en la operatoria de cada acopio.
+
+# 4. Comparación anual por acopio
+
+Luego de ver la tendencia mensual, ahora analizamos cómo evoluciona la **originación anual** en cada acopio.
+
+Este gráfico permite comparar rápidamente:
+
+-   aumentos o caídas interanuales,
+-   estabilidad o volatilidad en el volumen,
+-   efectos operativos (cierres y reaperturas),
+-   y diferencias estructurales entre acopios.
+
+```{r}
+
+#| label: tabla-volumen-anual
+#| echo: false
+
+resumen_anual_simple <- toneladas |>
+  dplyr::group_by(acopio, anio) |>
+  dplyr::summarise(
+    orig_tn_anio = sum(orig_mes, na.rm = TRUE),
+    .groups = "drop"
+  )
+tabla_anual <- resumen_anual_simple |>
+  tidyr::pivot_wider(
+    names_from = anio,
+    values_from = orig_tn_anio
+  ) |>
+  dplyr::arrange(desc(2025)) # ordeno por el año más reciente
+
+tabla_anual
+```
+
+En el siguiente grafico podemos ver : Cada recuadro representa un acopio, y las barras muestran su volumen total originado año a año.
+
+```{r}
+#| label: grafico-comparacion-anual
+#| echo: false
+#| fig-width: 10
+#| fig-height: 7
+
+ggplot(resumen_acopio_anio,
+aes(x = factor(anio),
+y = orig_tn_anio,
+fill = factor(anio))) +
+geom_col() +
+facet_wrap(~ acopio, scales = "free_y") +
+scale_fill_brewer(palette = "Blues") +
+scale_y_continuous(
+labels = ~ scales::comma(.x, big.mark = ".", decimal.mark = ",")
+) +
+labs(
+title = "Comparación anual de toneladas originadas por acopio",
+subtitle = "Volumen anual total (2020–2025)",
+x = "Año",
+y = "Toneladas originadas",
+fill = "Año"
+) +
+theme_minimal(base_size = 13)
+
+```
