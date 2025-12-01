@@ -63,6 +63,45 @@ Como estos bloques estaban dispuestos horizontalmente, se detectó **en qué col
 ```r
 start_cols <- which(!is.na(datos[1, ]))
 
+Esto permitió detectar automáticamente los acopios
+
+Se eliminó el bloque correspondiente a TOTAL ACOPIOS, ya que no representa un acopio real.
+
+#### **2.3. Construcción de una función de limpieza por bloque
+
+Para estandarizar la limpieza se implementó limpiar_bloque(), que:
+
+-extrae las columnas correspondientes a un acopio,
+
+-asigna nombres correctos a las variables,
+
+-convierte los tipos de datos,
+
+-elimina filas vacías,
+
+-añade el nombre del acopio al bloque.
+
+Esto transformó cada bloque horizontal en una tabla rectangular adecuada para su posterior análisis.
+
+#### **2.4. Unión de bloques y construcción del dataset final
+
+Usando purrr::map2(), se procesaron todos los acopios y se unieron con:
+
+toneladas_long <- bind_rows(lista_bloques)
+
+Luego se:
+
+-seleccionaron solo las columnas relevantes,
+
+-filtraron filas sin año,
+
+-excluyeron los registros incompletos de noviembre y diciembre 2025,
+
+-ordenaron las variables para su uso en las visualizaciones.
+
+El resultado es un dataset largo, limpio y completamente tabular, guardado en:
+
+**Datos_procesados/toneladas_limpias.csv**
 
 ### 3. Exploración de los datos
 
