@@ -1,14 +1,17 @@
 ---
-title: "Análisis de toneladas históricas por acopio"
-subtitle: "Trabajo práctico final de la materia: *Análisis inteligente de datos* — Maestría en Ciencia de Datos (2025/2026)"
-author: "Judith Luna"
+title: "Trabajo Final analisis de toneladas"
 format:
   html:
-    toc: true
-    toc-depth: 3
-    theme: flatly
-    code-fold: true
+    embed-resources: true
+    css: estilos/style.css
+lang: es
+author:
+  name: "Luna Judith"
+  affiliation: "Universidad Austral"
 editor: visual
+toc: true
+toc-location: left
+toc-title: "Tabla de contenidos"
 ---
 
 ```{=html}
